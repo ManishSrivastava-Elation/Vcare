@@ -10,6 +10,7 @@ import expenseRoutes from "./routes/expense.routes.js";
 import fileRouter from "./routes/file.routes.js";
 import upload from "./middlewares/upload.js";
 import { apiResponse } from "./utils/response.js";
+import cors from "cors";
  
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -51,8 +53,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/expense", expenseRoutes);
 app.use("/api/files", fileRouter);
 
-app.get("/api", (req, res) => {
-  return apiResponse({res, message:"API is working..."}) 
+app.get("/api/health", (req, res) => {
+  return apiResponse({res, message:"API is working properly..."}) 
 });
 
 // 404 - Not Found handler

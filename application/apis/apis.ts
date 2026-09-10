@@ -22,7 +22,7 @@ export const endpoints = {
     addExpense: `/admin/expense/add`,
     checkOutAttendance: `/admin/attendance/checkout`,
     dashboardStats: `/admin/dashboard/stats`,
-    expenseByType: `/admin/dashboard/expense-by-type`,
+    expenseByType: `/admin/dashboard/expense-by-type`, 
   },
   attendance: {
     checkIn: `/attendance/checkin`,
