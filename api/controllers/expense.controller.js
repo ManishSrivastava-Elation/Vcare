@@ -1,6 +1,165 @@
 import { query } from "../utils/dbQuery.js";
 import { apiResponse } from "../utils/response.js";
 
+export const updateExpense = async (req, res) => {
+  try {
+    const { CompanyId, Role } = req.user || {};
+    const { expenseId } = req.params;
+    const { Title, Description, Amount, EmployeeId } = req.body;
+
+    if (Role !== "admin") {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 403,
+        message: "Only admin can edit expense",
+      });
+    }
+
+    if (!Title || !Amount) {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 400,
+        message: "Title and Amount are required",
+      });
+    }
+
+    const existing = await query(
+      `SELECT ExpenseId, EmployeeId, CompanyId, ReceiptUrl
+       FROM Expenses
+       WHERE ExpenseId = ? AND CompanyId = ?`,
+      [expenseId, CompanyId]
+    );
+
+    if (!existing.length) {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 404,
+        message: "Expense not found",
+      });
+    }
+
+    if (EmployeeId) {
+      const employee = await query(
+        `SELECT EmployeeId
+         FROM Employees
+         WHERE EmployeeId = ? AND CompanyId = ?`,
+        [EmployeeId, CompanyId]
+      );
+
+      if (!employee.length) {
+        return apiResponse({
+          res,
+          success: false,
+          statusCode: 404,
+          message: "Employee not found in this company",
+        });
+      }
+    }
+
+    const ReceiptUrl = req.file
+      ? `/uploads/${req.file.filename}`
+      : existing[0].ReceiptUrl;
+
+    await query(
+      `UPDATE Expenses
+       SET Title = ?,
+           Description = ?,
+           Amount = ?,
+           EmployeeId = ?,
+           ReceiptUrl = ?
+       WHERE ExpenseId = ? AND CompanyId = ?`,
+      [
+        Title,
+        Description ?? null,
+        Amount,
+        EmployeeId ?? existing[0].EmployeeId,
+        ReceiptUrl,
+        expenseId,
+        CompanyId,
+      ]
+    );
+
+    return apiResponse({
+      res,
+      statusCode: 200,
+      message: "Expense updated successfully",
+      data: {
+        ExpenseId: Number(expenseId),
+        Title,
+        Description: Description ?? null,
+        Amount,
+        EmployeeId: EmployeeId ?? existing[0].EmployeeId,
+        ReceiptUrl,
+      },
+    });
+  } catch (err) {
+    return apiResponse({
+      res,
+      success: false,
+      statusCode: 500,
+      message: "Failed to update expense",
+      error: err.message,
+    });
+  }
+};
+
+export const deleteExpense = async (req, res) => {
+  try {
+    const { CompanyId, Role } = req.user || {};
+    const { expenseId } = req.params;
+
+    if (Role !== "admin") {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 403,
+        message: "Only admin can delete expense",
+      });
+    }
+
+    const existing = await query(
+      `SELECT ExpenseId, EmployeeId
+       FROM Expenses
+       WHERE ExpenseId = ? AND CompanyId = ?`,
+      [expenseId, CompanyId]
+    );
+
+    if (!existing.length) {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 404,
+        message: "Expense not found",
+      });
+    }
+
+    await query(
+      `DELETE FROM Expenses WHERE ExpenseId = ? AND CompanyId = ?`,
+      [expenseId, CompanyId]
+    );
+
+    return apiResponse({
+      res,
+      statusCode: 200,
+      message: "Expense deleted successfully",
+      data: {
+        ExpenseId: Number(expenseId),
+      },
+    });
+  } catch (err) {
+    return apiResponse({
+      res,
+      success: false,
+      statusCode: 500,
+      message: "Failed to delete expense",
+      error: err.message,
+    });
+  }
+};
+
 export const createExpense = async (req, res) => {
   try {
     const { EmployeeId, CompanyId } = req.user || {};

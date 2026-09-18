@@ -3,12 +3,13 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { testConnection } from "./dbConfig/db.js";
-import employeeRoutes from "./routes/auth.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import expenseRoutes from "./routes/expense.routes.js";
 import fileRouter from "./routes/file.routes.js";
 import upload from "./middlewares/upload.js";
+import employeeRoutes from "./routes/employee.route.js";
 import { apiResponse } from "./utils/response.js";
 import cors from "cors";
  
@@ -47,11 +48,12 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
 });  
 
 // routes
-app.use("/api/auth", employeeRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/expense", expenseRoutes);
 app.use("/api/files", fileRouter);
+app.use("/api/employees", employeeRoutes);
 
 app.get("/api/health", (req, res) => {
   return apiResponse({res, message:"API is working properly..."}) 
