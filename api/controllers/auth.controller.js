@@ -6,12 +6,20 @@ import { validateUnique } from "../validators/custom.validators.js";
 
 export const createEmployee = async (req, res) => {
   try {
-    const { Email } = req.body;
+    const { Email, MobileNo } = req.body;
 
     await validateUnique({
       table: "Employees",
       column: "Email",
       value: Email,
+      ignoreDeleted: true,
+    });
+
+    await validateUnique({
+      table: "Employees",
+      column: "MobileNo",
+      value: MobileNo,
+      ignoreDeleted: true,
     });
 
     const role = req.body.Role || "employee";

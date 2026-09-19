@@ -5,10 +5,15 @@ export const checkExists = async ({
   column,
   value,
   excludeId = null,
-  idColumn = "id"
+  idColumn = "id",
+  ignoreDeleted = false
 }) => {
   let sql = `SELECT COUNT(*) as count FROM ${table} WHERE ${column} = ?`;
   let params = [value];
+
+  if (ignoreDeleted) {
+    sql += ` AND Deleted = 0`;
+  }
 
   if (excludeId) {
     sql += ` AND ${idColumn} != ?`;

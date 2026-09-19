@@ -141,6 +141,57 @@ export const updateEmployee = async (req, res) => {
 
 
 
+export const restoreEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const AuthRole = req.user.Role || "";
+
+    if (AuthRole !== "admin") {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 403,
+        message: "Forbidden: Only admins can restore employees",
+      });
+    }
+
+    const employees = await query(
+      `SELECT EmployeeId FROM Employees WHERE EmployeeId = ? AND Deleted = 1`,
+      [id]
+    );
+
+    if (!employees.length) {
+      return apiResponse({
+        res,
+        success: false,
+        statusCode: 404,
+        message: "Deleted employee not found",
+      });
+    }
+
+    await query(
+      `UPDATE Employees SET IsActive = 1, Deleted = 0 WHERE EmployeeId = ?`,
+      [id]
+    );
+
+    return apiResponse({
+      res,
+      statusCode: 200,
+      message: "Employee restored successfully",
+      data: { EmployeeId: Number(id) },
+    });
+
+  } catch (err) {
+    return apiResponse({
+      res,
+      success: false,
+      statusCode: err.code ? 400 : 500,
+      message: err.message || "Employee restore failed",
+      error: err.message,
+    });
+  }
+};
+
 export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
